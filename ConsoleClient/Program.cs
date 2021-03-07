@@ -262,6 +262,9 @@ namespace ConsoleClient
                 Course course = businessLayer.GetCourseById(id);
                 if (course != null)
                 {
+                    // Menu.displayUpdateCourseOptions();
+                    // int ucoInput = Validator.getOptionInput();
+                    // listCoursesAndTeachers();
                     Console.WriteLine("Change this course's name to: ");
                     course.CourseName = Console.ReadLine();
                     course.EntityState = EntityState.Modified;
@@ -303,6 +306,13 @@ namespace ConsoleClient
             IList<Course> courses = businessLayer.GetAllCourses();
             foreach (Course course in courses)
                 Console.WriteLine("Course ID: {0}, Name: {1}", course.CourseId, course.CourseName);
+        }
+
+        public static void listCoursesAndTeachers() // TODO <--------
+        {
+            IList<Course> courses = businessLayer.GetAllCourses();
+            foreach (Course course in courses)
+                Console.WriteLine("Course Name: {0}, Teacher: {1}", course.CourseName, course.Teacher);
         }
     }
 }

@@ -38,5 +38,10 @@ namespace ConsoleClient
             Console.WriteLine("[1] find by name");
             Console.WriteLine("[2] find by id");
         }
+        public static void displayUpdateCourseOptions() // TODO: <---------
+        {
+            Console.WriteLine("[1] update name");
+            Console.WriteLine("[2] update teacher");
+        }
     }
 }
