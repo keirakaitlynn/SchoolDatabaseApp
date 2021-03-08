@@ -11,7 +11,7 @@ namespace ConsoleClient
         public static int getMenuInput()
         {
             int input = checkNumericality();
-            while (input < 0 || input > 9)
+            while (input < 0 || input > 10)
             {
                 Console.WriteLine("Not a valid selection.");
                 input = checkNumericality();
