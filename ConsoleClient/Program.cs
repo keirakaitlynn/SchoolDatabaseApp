@@ -249,10 +249,33 @@ namespace ConsoleClient
                 Course course = businessLayer.GetCourseByName(Console.ReadLine());
                 if (course != null)
                 {
-                    Console.WriteLine("Change this course's name to: ");
-                    course.CourseName = Console.ReadLine();
-                    course.EntityState = EntityState.Modified;
-                    businessLayer.UpdateCourse(course);
+                    Menu.displayUpdateCourseOptions();
+                    int ucoInput = Validator.getOptionInput();
+                    // [1] change name
+                    if (ucoInput == 1)
+                    {
+                        Console.WriteLine("Change this course's name to: ");
+                        course.CourseName = Console.ReadLine();
+                        course.EntityState = EntityState.Modified;
+                        businessLayer.UpdateCourse(course);
+                    }
+                    // TODO [2] change teacher
+                    else if (ucoInput == 2) {
+                        //listCoursesAndTeachers();
+                        Console.WriteLine("Change this course's teacher to: ");
+                        String inputTeacherName = Console.ReadLine();
+                        Teacher newTeacher = businessLayer.GetTeacherByName(inputTeacherName);
+                        if (newTeacher != null)
+                        {
+                            // update course
+                            Console.WriteLine("{0} has been updated.", course.CourseName);
+                            course.Teacher.TeacherId = newTeacher.TeacherId;
+                            course.Teacher.TeacherName = newTeacher.TeacherName;
+                            course.EntityState = EntityState.Modified;
+                            businessLayer.UpdateCourse(course);
+                            // update old teacher & new teacher?
+                        }
+                    }
                 }
                 else
                 {
@@ -266,13 +289,33 @@ namespace ConsoleClient
                 Course course = businessLayer.GetCourseById(id);
                 if (course != null)
                 {
-                    // Menu.displayUpdateCourseOptions();
-                    // int ucoInput = Validator.getOptionInput();
-                    // listCoursesAndTeachers();
-                    Console.WriteLine("Change this course's name to: ");
-                    course.CourseName = Console.ReadLine();
-                    course.EntityState = EntityState.Modified;
-                    businessLayer.UpdateCourse(course);
+                    Menu.displayUpdateCourseOptions();
+                    int ucoInput = Validator.getOptionInput();
+                    // [1] change name
+                    if (ucoInput == 1)
+                    {
+                        Console.WriteLine("Change this course's name to: ");
+                        course.CourseName = Console.ReadLine();
+                        course.EntityState = EntityState.Modified;
+                        businessLayer.UpdateCourse(course);
+                    }
+                    // TODO: [2] change teacher
+                    else if (ucoInput == 2)
+                    {
+                        //listCoursesAndTeachers();
+                        Console.WriteLine("Change this course's teacher to: ");
+                        String inputTeacherName = Console.ReadLine();
+                        Teacher newTeacher = businessLayer.GetTeacherByName(inputTeacherName);
+                        if (newTeacher != null) {
+                            // update course
+                            Console.WriteLine("{0} has been updated.", course.CourseName);
+                            course.Teacher.TeacherId = newTeacher.TeacherId;
+                            course.Teacher.TeacherName = newTeacher.TeacherName;
+                            course.EntityState = EntityState.Modified;
+                            businessLayer.UpdateCourse(course);
+                            // update old teacher & new teacher?
+                        }
+                    }
                 }
                 else
                 {
@@ -312,12 +355,19 @@ namespace ConsoleClient
                 Console.WriteLine("Course ID: {0}, Name: {1}", course.CourseId, course.CourseName);
         }
 
-        public static void listCoursesAndTeachers() // TODO <--------
+        /*public static void listCoursesAndTeachers() // TODO <--------
         {
             IList<Course> courses = businessLayer.GetAllCourses();
-            foreach (Course course in courses)
-                Console.WriteLine("Course Name: {0}, Teacher: {1}", course.CourseName, course.Teacher);
-        }
+            foreach (Course course in courses) {
+                if (course.Teacher == null)
+                {
+                    Console.WriteLine("Course Name: {0}, Teacher: [NONE]", course.CourseName);
+                }
+                else {
+                    Console.WriteLine("Course Name: {0}, Teacher: {1}", course.CourseName, course.Teacher.TeacherName); // REVIEW: null?? even when that course has a teacher
+                }
+            }
+        }*/
 
         public static void addExistingCourseToTeacher()
         {
@@ -341,19 +391,7 @@ namespace ConsoleClient
                 
                 // create course
                 var cName = course.CourseName;
-                course = new Course()
-                {
-                    CourseName = cName,
-                    TeacherId = teacher.TeacherId,
-                    EntityState = EntityState.Added
-                };
-
-                // add course to teacher
-                teacher.EntityState = EntityState.Modified;
-                foreach (Course c in teacher.Courses)
-                    c.EntityState = EntityState.Unchanged;
-                teacher.Courses.Add(course);
-                businessLayer.UpdateTeacher(teacher);
+            course = new Course();
                 Console.WriteLine("{0} has been added to the new teacher.", course.CourseName);
             }
             else
