@@ -18,7 +18,7 @@ namespace ConsoleClient
             Console.WriteLine("[7] update a course");
             Console.WriteLine("[8] remove a course");
             Console.WriteLine("[9] list all courses");
-            Console.WriteLine("[10] add an existing course to a new teacher");
+            Console.WriteLine("[10] list all teachers and courses");
             Console.WriteLine("[0] exit");
         }
 
@@ -39,7 +39,11 @@ namespace ConsoleClient
             Console.WriteLine("[1] find by name");
             Console.WriteLine("[2] find by id");
         }
-        public static void displayUpdateCourseOptions() // TODO: <---------
+
+        /// <summary>
+        /// Display update options: name or teacher.
+        /// </summary>
+        public static void displayUpdateCourseOptions()
         {
             Console.WriteLine("[1] update name");
             Console.WriteLine("[2] update teacher");

@@ -2,7 +2,6 @@
 using Mm.BusinessLayer;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ConsoleClient
 {
@@ -71,7 +70,7 @@ namespace ConsoleClient
                         break;
                     case 10:
                         Menu.clearMenu();
-                        addExistingCourseToTeacher();
+                        listAllTeachersAndCourses();
                         break;
                 }
             } while (repeat);
@@ -86,9 +85,9 @@ namespace ConsoleClient
         {
             Console.WriteLine("Enter a teacher name: ");
             string teacherName = Console.ReadLine();
-            Teacher it = new Teacher() { TeacherName = teacherName };
-            it.EntityState = EntityState.Added;
-            businessLayer.AddTeacher(it);
+            Teacher newTeacher = new Teacher() { TeacherName = teacherName };
+            newTeacher.EntityState = EntityState.Added;
+            businessLayer.AddTeacher(newTeacher);
             Console.WriteLine("{0} has been added to the database.", teacherName);
         }
 
@@ -185,7 +184,7 @@ namespace ConsoleClient
                 }
                 else
                 {
-                    Console.WriteLine("No courses for [ID: {0}, Name: {1}]:", teacher.TeacherId, teacher.TeacherName);
+                    Console.WriteLine("No courses for [ID: {0}, Name: {1}]", teacher.TeacherId, teacher.TeacherName);
                 }
             }
             else
@@ -241,87 +240,72 @@ namespace ConsoleClient
             Menu.displaySearchOptions();
             int input = Validator.getOptionInput();
             listCourses();
+            Course course = null;
 
             //find course by name
             if (input == 1)
             {
                 Console.WriteLine("Enter a course's name: ");
-                Course course = businessLayer.GetCourseByName(Console.ReadLine());
-                if (course != null)
-                {
-                    Menu.displayUpdateCourseOptions();
-                    int ucoInput = Validator.getOptionInput();
-                    // [1] change name
-                    if (ucoInput == 1)
-                    {
-                        Console.WriteLine("Change this course's name to: ");
-                        course.CourseName = Console.ReadLine();
-                        course.EntityState = EntityState.Modified;
-                        businessLayer.UpdateCourse(course);
-                    }
-                    // TODO [2] change teacher
-                    else if (ucoInput == 2) 
-                    {
-                        //listCoursesAndTeachers();
-                        Console.WriteLine("Change this course's teacher to: ");
-                        string inputTeacherName = Console.ReadLine();
-                        Teacher newTeacher = businessLayer.GetTeacherByName(inputTeacherName);
-                        if (newTeacher != null)
-                        {
-                            // update course
-                            Console.WriteLine("{0} has been updated.", course.CourseName);
-                            course.Teacher.TeacherId = newTeacher.TeacherId;
-                            course.Teacher.TeacherName = newTeacher.TeacherName;
-                            course.EntityState = EntityState.Modified;
-                            businessLayer.UpdateCourse(course);
-                            // update old teacher & new teacher?
-                        }
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Course does not exist.");
-                }
+                course = businessLayer.GetCourseByName(Console.ReadLine());
             }
             //find course by id
             else if (input == 2)
             {
-                int id = Validator.getId();
-                Course course = businessLayer.GetCourseById(id);
-                if (course != null)
+                course = businessLayer.GetCourseById(Validator.getId());
+            }
+
+            // update the course if the course exists
+            if (course != null)
+            {
+                Menu.displayUpdateCourseOptions();
+                int ucoInput = Validator.getOptionInput();
+                // [1] change name
+                if (ucoInput == 1)
                 {
-                    Menu.displayUpdateCourseOptions();
-                    int ucoInput = Validator.getOptionInput();
-                    // [1] change name
-                    if (ucoInput == 1)
+                    Console.WriteLine("Change this course's name to: ");
+                    course.CourseName = Console.ReadLine();
+                    course.EntityState = EntityState.Modified;
+                    businessLayer.UpdateCourse(course);
+                }
+                // [2] change teacher
+                else if (ucoInput == 2)
+                {
+                    // get the current teacher for the course
+                    int id = Convert.ToInt32(course.TeacherId);
+                    Teacher curTeacher = businessLayer.GetTeacherById(id);
+                    Console.WriteLine("Current teacher for the course: ");
+                    Console.WriteLine($"Teacher: [ID: {curTeacher.TeacherId}, Name: {curTeacher.TeacherName}]");
+
+                    // get the new teacher selection
+                    Console.WriteLine("Change this course's teacher to: ");
+                    foreach (Teacher teacher in businessLayer.GetAllTeachers())
                     {
-                        Console.WriteLine("Change this course's name to: ");
-                        course.CourseName = Console.ReadLine();
+                        // only list the teachers that are different that the current one
+                        if (teacher.TeacherId != id)
+                        {
+                            Console.WriteLine("Teacher ID: {0}, Name: {1}", teacher.TeacherId, teacher.TeacherName);
+                        }
+                    }
+                    course.Teacher = businessLayer.GetTeacherById(Validator.getId());
+
+                    // change the teacher if the selection was valid
+                    if (course.Teacher != null && course.Teacher.TeacherId != id)
+                    {
+                        // update course
+                        Console.WriteLine("{0} has been updated.", course.CourseName);
+                        course.TeacherId = course.Teacher.TeacherId;
                         course.EntityState = EntityState.Modified;
                         businessLayer.UpdateCourse(course);
                     }
-                    // TODO: [2] change teacher
-                    else if (ucoInput == 2)
+                    else
                     {
-                        //listCoursesAndTeachers();
-                        Console.WriteLine("Change this course's teacher to: ");
-                        string inputTeacherName = Console.ReadLine();
-                        Teacher newTeacher = businessLayer.GetTeacherByName(inputTeacherName);
-                        if (newTeacher != null) {
-                            // update course
-                            Console.WriteLine("{0} has been updated.", course.CourseName);
-                            course.Teacher.TeacherId = newTeacher.TeacherId;
-                            course.Teacher.TeacherName = newTeacher.TeacherName;
-                            course.EntityState = EntityState.Modified;
-                            businessLayer.UpdateCourse(course);
-                            // update old teacher & new teacher?
-                        }
+                        Console.WriteLine("Not a valid Teacher selection.");
                     }
                 }
-                else
-                {
-                    Console.WriteLine("Course does not exist.");
-                }
+            }
+            else
+            {
+                Console.WriteLine("Course does not exist.");
             }
         }
 
@@ -335,6 +319,7 @@ namespace ConsoleClient
             Course course = businessLayer.GetCourseById(id);
             if (course != null)
             {
+                // TODO: remove course from teacher from database
                 Console.WriteLine("{0} has been removed.", course.CourseName);
                 course.EntityState = EntityState.Deleted;
                 businessLayer.RemoveCourse(course);
@@ -355,62 +340,27 @@ namespace ConsoleClient
                 Console.WriteLine("Course ID: {0}, Name: {1}", course.CourseId, course.CourseName);
         }
 
-        //public static void listCoursesAndTeachers() // TODO <--------
-        //{
-        //    IList<Course> courses = businessLayer.GetAllCourses();
-        //    IList<Teacher> teachers = businessLayer.GetAllTeachers();
-        //    foreach (Course course in courses)
-        //    {
-        //        var teachersList = (from t in teachers where t.TeacherId == course.TeacherId select t).ToList();
-        //        Console.WriteLine($"Listing teachers for [Course ID: {course.CourseId}, Name: {course.CourseName}]:");
-        //        if (teachersList.Count > 0)
-        //        {
-        //            foreach (Teacher teacher in teachersList)
-        //                Console.WriteLine($"ID: {teacher.TeacherId}, Name: {teacher.TeacherName}");
-        //        }
-        //    }
-        //}
-
-        public static void addExistingCourseToTeacher()
+        /// <summary>
+        /// List all teachers and courses in the database.
+        /// </summary>
+        public static void listAllTeachersAndCourses()
         {
-            // list all the existing courses
-            listCourses();
-
-            // select an existing course
-            Console.WriteLine("Select a course for the new teacher. ");
-            int id = Validator.getId();
-            Course course = businessLayer.GetCourseById(id);
-
-            if (course != null)
+            IList<Teacher> teachers = businessLayer.GetAllTeachers();
+            foreach (Teacher teacher in teachers)
             {
-                Console.WriteLine("{0} has been selected.", course.CourseName);
+                Console.WriteLine("Listing courses for [ID: {0}, Name: {1}]:", teacher.TeacherId, teacher.TeacherName);
+                int id = Convert.ToInt32(teacher.TeacherId);
+                IList<Course> courses = businessLayer.GetCoursesByTeacherId(id);
 
-                // create teacher
-                Console.WriteLine("Enter a teacher name: ");
-                string teacherName = Console.ReadLine();
-                Teacher teacher = new Teacher() { TeacherName = teacherName };
-                teacher.EntityState = EntityState.Added;
-                businessLayer.AddTeacher(teacher);
-                Console.WriteLine("{0} has been added to the database.", teacherName);
-
-                // create course
-                course = new Course()
+                if (courses.Count > 0)
                 {
-                    CourseName = course.CourseName,
-                    TeacherId = teacher.TeacherId,
-                    EntityState = EntityState.Added
-                };
-
-                // add course to teacher
-                teacher.EntityState = EntityState.Modified;
-                foreach (Course c in teacher.Courses)
-                    c.EntityState = EntityState.Unchanged;
-                teacher.Courses.Add(course);
-                businessLayer.UpdateTeacher(teacher);
-            }
-            else
-            {
-                Console.WriteLine("Course does not exist.");
+                    foreach (Course course in courses)
+                        Console.WriteLine("Course: [ID: {0}, Name: {1}]", course.CourseId, course.CourseName);
+                }
+                else
+                {
+                    Console.WriteLine("No courses for [ID: {0}, Name: {1}]", teacher.TeacherId, teacher.TeacherName);
+                }
             }
         }
     }
