@@ -95,7 +95,14 @@ namespace Mm.BusinessLayer
 
         public void RemoveCourse(params Course[] courses)
         {
-            _courseRepository.Remove(courses);
+            try
+            {
+                _courseRepository.Remove(courses);
+            }
+            catch (System.Exception e) 
+            {
+                System.Console.WriteLine(e.Message);
+            }
         }
     }
 }
